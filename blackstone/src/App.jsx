@@ -5,12 +5,14 @@ import Footer from "./footer.jsx";
 import react from   'react';
 import './index.css';
 import Options from './options.jsx';
+import Cart from './Cart.jsx';
 import Utility from './utility.jsx';
 import axios from 'axios';
 import Home from './Home.jsx';
 import ProductsCategory from './ProductsCategory.jsx';
 import ItemView from './ItemView.jsx';
 import Account from './Account.jsx';
+
 
 axios.defaults.withCredentials = true;
 
@@ -47,12 +49,19 @@ function UseApp(){
      const hideHeaderFooter = location.pathname === '/Account';
   return (
     <>
-    { !hideHeaderFooter && <Header /> }
+    { !hideHeaderFooter && (
+          <Header isAuthenticated={isAuthenticated} currentUser={currentUser} />
+        ) }
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/products/category/:id" element={<ProductsCategory />} />
-          <Route path="/products/category/item/:serial_id" element={<ItemView />} />
+          <Route 
+          path="/products/category/item/:serial_id" element={<ItemView />} 
+          element={<ItemView isAuthenticated={isAuthenticated} currentUser={currentUser} />}
+          />
           <Route path="/Account" element={<Account />} />
+          <Route path="/Cart" element={<Cart />} />
+      
         </Routes>
        { !hideHeaderFooter && <Footer /> }
     </>

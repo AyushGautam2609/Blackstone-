@@ -12,10 +12,12 @@ import {Strategy} from 'passport-local';
 import env from 'dotenv';
 import GoogleStrategy from "passport-google-oauth20"
 
+env.config();
+
 const app = express();
 const port = process.env.BACKEND_SERVER_PORT || 3000;
 const saltRounds = parseInt(process.env.SALT_ROUNDS) || 10;
-env.config();
+
 
 app.use(express.json()); 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -29,10 +31,13 @@ app.use('/images', express.static(path.join(process.cwd(), 'public', 'images')))
 app.use(session({
   secret: process.env.SECRET_SESSION, 
   resave: false,
-  saveUninitialized: true,
-  
+  saveUninitialized: false, 
+  cookie: {
+    secure: false, 
+    httpOnly: true,
+    sameSite: 'lax' 
+  }
 }));
-
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -138,6 +143,43 @@ app.get("/products/option/jewels", async (req, res) => {
 }
 )
 
+app.get("/cart" , async(req,res) => {
+
+  if (!req.isAuthenticated() || !req.user) {
+    return res.status(401).json({ message: "Unauthorized. Please log in." });
+  }
+
+  const userEmail = req.user.email;
+
+  try{
+
+    const checkCart = await db.query(
+      `SELECT 
+        c.id AS cart_item_id,
+        c.product_id,
+        c.quantity,
+        p.catogory_name_des AS category_name_des,
+        p.description,
+        p.price,
+        p.image_url,
+        p.stock
+       FROM cart_items c
+       JOIN products p ON c.product_id = p.serial_id
+       WHERE c.user_email = $1
+       ORDER BY c.id ASC`,
+      [userEmail]
+    );
+    
+    return res.status(200).json(checkCart.rows);
+
+  }
+  catch (err) {
+    console.error("Database error fetching cart data:", err);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+  
+});
+
 //INSERTION IN CART
 app.post("/cart/add", async (req, res) => {
   // 1. Enforce active user verification
@@ -204,11 +246,36 @@ app.get("/auth/google" , passport.authenticate("google" , {
   scope : ["profile" , "email"],
 }))
 
-app.get("/auth/google/secrets" , passport.authenticate("google" , {
+app.get("/auth/google/secrets", (req, res, next) => {
+  passport.authenticate("google", (err, user, info) => {
+    if (err) {
+      console.error("Google Auth Error:", err);
+      return res.redirect("http://localhost:5173/Account");
+    }
+    if (!user) {
+      console.log("No user object returned from Google Strategy");
+      return res.redirect("http://localhost:5173/Account");
+    }
 
-  successRedirect : "http://localhost:5173/",
-  failureRedirect : "http://localhost:5173/Account"
-}))
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        console.error("Passport Login Error:", loginErr);
+        return res.redirect("http://localhost:5173/Account");
+      }
+
+      // Force session synchronization before redirecting
+      req.session.save((saveErr) => {
+        if (saveErr) {
+          console.error("Session Save Error:", saveErr);
+          return res.redirect("http://localhost:5173/Account");
+        }
+        
+        console.log(`[SUCCESS] Cookie baked and saved for: ${user.email}`);
+        return res.redirect("http://localhost:5173/");
+      });
+    });
+  })(req, res, next); // <--- Double check that (req, res, next) is written here!
+});
 
 
 //LOGIN

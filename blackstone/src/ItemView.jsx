@@ -9,12 +9,18 @@ import toast , {Toaster} from "react-hot-toast";
 
 
 
-function ItemView({ isAuthenticated }) {
+function ItemView({ isAuthenticated , currentUser }) {
     
     const [products,setProducts] = useState(null);
     const { serial_id } = useParams();
     const [options,setOptions] = useState([]);
     const navigate = useNavigate();
+    const [processedResult, setProcessedResult] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    
+    const fileInputRef = useRef(null);
+    const canvasRef = useRef(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -64,7 +70,11 @@ function ItemView({ isAuthenticated }) {
       const response = await axios.post("http://localhost:3000/cart/add", {
         productId: products.serial_id,
         quantity: 1
-      });
+      },
+        { 
+        withCredentials: true // Forces browser to send the connect.sid session cookie
+      }
+      );
       toast.success('Product Successfully added to cart', {
               duration: 2000, 
               position: 'top-center',
@@ -85,9 +95,13 @@ function ItemView({ isAuthenticated }) {
 
   };
 
+
+
+
         return (
 
 <div className="min-h-screen bg-white font-sans py-12 px-6">
+  <Toaster/>
   <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
     
     
@@ -117,6 +131,8 @@ function ItemView({ isAuthenticated }) {
         className="w-full bg-black text-white text-xs font-bold tracking-[0.2em] py-4 hover:bg-gray-800 transition">
           ADD TO CART
         </button>
+        
+
         <button 
         onClick={handlebuyclick}
         className="w-full bg-[#F5F2ED] text-black text-xs font-bold tracking-[0.2em] py-4 hover:bg-stone-200 transition">
@@ -133,7 +149,8 @@ function ItemView({ isAuthenticated }) {
         Find IN STORE
       </button>
     </div>
-
+    
+  
     
     <div className="flex flex-col items-center">
       <img 

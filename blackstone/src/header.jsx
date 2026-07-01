@@ -1,9 +1,15 @@
 import react from 'react'
 import './index.css';
 import {Link} from 'react-router-dom';
+import { Search } from 'lucide-react';
+import { Sparkles, User, ShoppingBag } from 'lucide-react';
 
 
-function Header() {
+function Header({ isAuthenticated, currentUser }) {
+
+  const userInitial = isAuthenticated && currentUser?.name 
+        ? currentUser.name.charAt(0).toUpperCase() 
+        : null;
 
     return (<div className='Header'>
         
@@ -16,8 +22,10 @@ function Header() {
     
     {/* Left: Search & Location */}
     <div className="flex gap-4">
-      <span>🔍</span>
-      <span>📍</span>
+      <button className="hover:opacity-60 transition-opacity">
+  <Search size={20} strokeWidth={1.2} className="text-neutral-900" />
+</button>
+      
     </div>
 
     {/* Center: Logo */}
@@ -27,20 +35,67 @@ function Header() {
 
     {/* Right: Account & Cart */}
     <div className="flex gap-6">
-      <span>💍</span>
-      <Link to={`/Account`}> <span>👤</span> </Link>
-      <span>🛒</span>
+      <span className="cursor-pointer hover:opacity-60 transition-opacity text-neutral-900">
+        <Sparkles 
+          size={20} 
+          strokeWidth={1.2} 
+        />
+      </span>
+     <Link to="/Account" className="flex items-center justify-center">
+        {isAuthenticated && userInitial ? (
+          <span className="w-6 h-6 flex items-center justify-center border border-neutral-900 text-neutral-950 rounded-full font-medium text-xs tracking-tighter hover:bg-neutral-50 transition-colors">
+            {userInitial}
+          </span>
+        ) : (
+          <span className="cursor-pointer hover:opacity-60 transition-opacity text-neutral-900">
+            <User 
+              size={20} 
+              strokeWidth={1.2} 
+            />
+          </span>
+        )}
+      </Link>
+
+      <Link to = "/Cart" className="flex items-center justify-center">
+        <span className="cursor-pointer hover:opacity-60 transition-opacity text-neutral-900">
+          <ShoppingBag 
+            size={20} 
+            strokeWidth={1.2} 
+          />
+        </span>
+      </Link>
+    
     </div>
   </div>
 
   {/* Navigation Menu */}
-  <nav className="flex justify-center gap-8 mt-6 text-sm uppercase tracking-wider">
-    {['High Jewelry', 'Jewelry', 'Engagement', 'Watches', 'Home'].map((item) => (
-      <a href="#" key={item} className="hover:text-gray-500 transition-colors">
-        {item}
-      </a>
-    ))}
-  </nav>
+  <nav className="flex justify-center gap-8 mt-6 text-sm uppercase text-neutral-900">
+      
+      <Link to={`/products/category/0`} className="hover:text-neutral-500 transition-colors font-medium text-[13px] tracking-[0.15em]">
+        NECKLACE
+      </Link>
+      
+      <Link to={`/products/category/1`} className="hover:text-neutral-500 transition-colors font-medium text-[13px] tracking-[0.15em]">
+        BRACELETS
+      </Link>
+      
+      <Link to={`/products/category/2`} className="hover:text-neutral-500 transition-colors font-medium text-[13px] tracking-[0.15em]">
+        EARRINGS
+      </Link>
+      
+      <Link to={`/products/category/3`} className="hover:text-neutral-500 transition-colors font-medium text-[13px] tracking-[0.15em]">
+        RINGS
+      </Link>
+      
+      <Link to={`/products/category/4`} className="hover:text-neutral-500 transition-colors font-medium text-[13px] tracking-[0.15em]">
+        WATCHES
+      </Link>
+      
+      <Link to={`/Cart`} className="hover:text-neutral-500 transition-colors font-medium text-[13px] tracking-[0.15em]">
+        CART
+      </Link>
+
+    </nav>
 </header> 
         
     </div>
